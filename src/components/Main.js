@@ -33,7 +33,6 @@ class Main extends Component {
 
   // Compute remaining interest payments
   computeRemainingLoanPayments = (principal, interestRate, monthlyPayment, paymentDayOfMonth) => {
-    let monthsRemaining = 0
     let today = new Date()
     let startDate = this.getNthDayOfMonth(today, paymentDayOfMonth)
     let balance = principal
@@ -44,19 +43,16 @@ class Main extends Component {
     while (balance > 0) {
     // Calculate interest before next payment date
       let paymentDate = this.getNthDayOfNextMonth(startDate, paymentDayOfMonth)
-
       let thisMonthsInterest = this.calculateAccruedInterest(
         balance, interestRate, startDate, paymentDate
-      )
-
+      );
       if (balance + thisMonthsInterest < monthlyPayment){
         monthlyPayment = balance + thisMonthsInterest
-      }
+      };
 
       balance = balance + thisMonthsInterest - monthlyPayment
 
       totalInterest = totalInterest + thisMonthsInterest
-      ++monthsRemaining
       amountPaid = amountPaid + monthlyPayment
 
       loanPayments.push(
@@ -64,7 +60,8 @@ class Main extends Component {
       )
       startDate = paymentDate
     }
-    console.log("total interest", totalInterest)
+    console.log("total interest to be paid", totalInterest)
+    console.log("Payments remaining to pay off loan", loanPayments.length)
     return loanPayments
   }
 
@@ -95,20 +92,26 @@ class Main extends Component {
     return 12 - d.getMonth(Date.now())
   }
 
-  computeMonthlyIncome = () => {
-
-  };
-
   projectEOYAssetsByBudget = () => {
     // Hard coded
     let monthlyIncome = INCOME_SOURCES[0].amount
     let monthlyBudget = this.computeMonthlyBudget()
     let monthlyLoanPayments = this.computeMonthlyLoanPayments()
     let monthsLeftInYear = this.getRemainingMonthsInYear()
-    return monthlyIncome * monthsLeftInYear - (monthlyBudget * monthsLeftInYear) - (monthsLeftInYear * monthlyLoanPayments)
+    return ASSETS.bankBalance + (monthlyIncome * monthsLeftInYear) - (monthlyBudget * monthsLeftInYear) - (monthsLeftInYear * monthlyLoanPayments)
   }
 
-  renderLoanPayments = (loanPayments) => {
+  renderLoanPayments = () => {
+    const loanPayments = this.computeRemainingLoanPayments(
+      /* currentBalance:*/
+      DEBTS[0].currentBalance,
+      /*interestRate:*/
+      DEBTS[0].interestRate,
+      /*monthlyPayment:*/
+      DEBTS[0].monthlyPayment,
+      /* paymentDayOfMonth:*/
+      DEBTS[0].paymentDayOfMonth
+      )
     return loanPayments.map(loanPayment =>
       <tr>
         <td>{moment(loanPayment.paymentDate).format('M/D/Y')}</td>
@@ -132,13 +135,11 @@ class Main extends Component {
         </p>
         <p>Monthly Loan Payments: {this.formatter.format(this.computeMonthlyLoanPayments())}
         </p>
-
         <p>Current Bank Balance:
-        {ASSETS.bankBalance}
+        {this.formatter.format(ASSETS.bankBalance)}
         </p>
         <p>Expected EOY Balance: {this.formatter.format(this.projectEOYAssetsByBudget())}
         </p>
-
         <p> Budget Items </p>
         {this.renderBudgetItems()}
         <p>
@@ -153,14 +154,8 @@ class Main extends Component {
             </tr>
           </thead>
           <tbody>
-            {this.renderLoanPayments(
-              this.computeRemainingLoanPayments(
-                        /*/* currentBalance:*/ DEBTS[0].currentBalance,
-                        /*interestRate:*/ DEBTS[0].interestRate,
-                        /*monthlyPayment:*/ DEBTS[0].monthlyPayment,
-                      /*paymentDayOfMonth:*/ DEBTS[0].paymentDayOfMonth)
-                      )
-                    }
+            {this.renderLoanPayments()
+            }
           </tbody>
         </table>
 
