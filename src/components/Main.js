@@ -80,6 +80,13 @@ class Main extends Component {
     return monthlyBudgetItemAmounts.reduce(this.reducer)
   }
 
+  computeAnnualBudget = () => {
+    let annualBudgetItemAmounts = BUDGET_ITEMS
+    .filter(budgetItem => budgetItem.frequency === "annually")
+    .map(budgetItem => budgetItem.amount)
+    return annualBudgetItemAmounts.reduce(this.reducer)
+  }
+
   computeMonthlyLoanPayments = () => {
     let monthlyLoanPaymentAmounts = DEBTS
       .filter(loanPayment => loanPayment.frequency === "monthly")
@@ -99,6 +106,15 @@ class Main extends Component {
     let monthlyLoanPayments = this.computeMonthlyLoanPayments()
     let monthsLeftInYear = this.getRemainingMonthsInYear()
     return ASSETS.bankBalance + (monthlyIncome * monthsLeftInYear) - (monthlyBudget * monthsLeftInYear) - (monthsLeftInYear * monthlyLoanPayments)
+  }
+
+  projectEOYAssets = (startBalance) => {
+    let monthlyIncome = INCOME_SOURCES[0].amount
+    let monthlyBudget = this.computeMonthlyBudget()
+    let monthlyLoanPayments = this.computeMonthlyLoanPayments()
+    let annualBudget = this.computeAnnualBudget()
+    return startBalance - annualBudget +
+    (monthlyIncome * 12) - (monthlyBudget * 12) - (monthlyLoanPayments * 12)
   }
 
   renderLoanPayments = () => {
@@ -140,6 +156,10 @@ class Main extends Component {
         </p>
         <p>Expected EOY Balance: {this.formatter.format(this.projectEOYAssetsByBudget())}
         </p>
+        <p> Expected Balance at end of next year:  {this.formatter.format(
+          this.projectEOYAssets(this.projectEOYAssetsByBudget())
+        )}
+        </p>
         <p> Budget Items </p>
         {this.renderBudgetItems()}
         <p>
@@ -158,7 +178,6 @@ class Main extends Component {
             }
           </tbody>
         </table>
-
       </div>
     )
   }
