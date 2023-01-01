@@ -170,7 +170,7 @@ class Main extends Component {
               <th>Payment Date</th>
               <th>Payment Amount</th>
               <th>Remaining Balance</th>
-              <th> Interest Accrued this Period</th>
+              <th>Interest Accrued this Period</th>
             </tr>
           </thead>
           <tbody>
